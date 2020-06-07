@@ -276,7 +276,7 @@ class Fishing(FunCog):
         next = now // _12h + _12h  # get next 00 or 12
         await discord.utils.sleep_until(next)  # wait until then
 
-    @commands.group(aliases=['feesh', '<:feesh:427018890137174016>'],
+    @commands.group(aliases=['feesh', '<:feesh:427018890137174016>', 'FEESH'],
                     invoke_without_command=True, cooldown_after_parsing=True)
     # 1 every 20 mins
     @commands.cooldown(1, 20 * 60, commands.BucketType.member)
@@ -529,7 +529,8 @@ class Fishing(FunCog):
             value=totals_str,
         )
 
-        await ctx.send(embed=embed)
+        journal = menus.JournalMenu(embed)
+        await journal.start(ctx)
 
     @fish_journal.error
     async def fish_journal_error(self, ctx, error):
@@ -757,19 +758,19 @@ class Fishing(FunCog):
         fish is either a Fish or a list of Fish.
         """
         if isinstance(fish, Fish):
-            weight = fish.weight
+            # get stunned for the sqrt of the weight of the fish, in hours
+            slap_time = timedelta(hours=np.sqrt(fish.weight))
             self._remove_from_inventory(slapper, fish)
 
         elif isinstance(fish, list):
-            weight = 0
+            slap_time = timedelta(0)
             for f in fish:
-                weight += f.weight
+                # get stunned for the sqrt of the weight of the fish, in hours
+                slap_time += timedelta(hours=np.sqrt(f.weight))
                 self._remove_from_inventory(slapper, f)
 
-        # get stunned for the sqrt of the weight of the fish, in hours
-        stunned_time = timedelta(hours=np.sqrt(weight))
         beginning = max(datetime.utcnow(), self.stunned_until[member.id])
-        self.stunned_until[member.id] = until = beginning + stunned_time
+        self.stunned_until[member.id] = until = beginning + slap_time
         stunned_time = until - datetime.utcnow()
 
         return stunned_time
