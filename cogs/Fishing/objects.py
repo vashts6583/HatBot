@@ -14,6 +14,14 @@ def get_fish_species_str(size, species_index):
     return FISH_SPECIES[size]['species'][species_index]
 
 
+def get_fish_size_color(size):
+    return getattr(
+        discord.Color,
+        FISH_SPECIES[size]['color'],
+        discord.Color.default
+        )()
+
+
 SMELLS = [
     'It smells delightful!',
     'It smells alright.',
@@ -54,9 +62,7 @@ class Fish:
 
 
         self.species_str = get_fish_species_str(self.size, self.species)
-        self.color = getattr(discord.Color,
-                             FISH_SPECIES[self.size]['color'],
-                             discord.Color.default)()
+        self.color = get_fish_size_color(self.size)
 
     @classmethod
     def from_random(cls, exp, weather, owner_id):
@@ -124,11 +130,7 @@ class Fish:
     def from_dict(cls, fish_dict):
         """Convert a dict (or Row) form the DB to a class instance."""
 
-        instance = cls(**fish_dict)
-        instance.catch_time = datetime.fromisoformat(
-            instance.catch_time)
-
-        return instance
+        return cls(**fish_dict)
 
     def __repr__(self):
         return f'{self.size.title()} {self.species_str} ({self.weight:.3f} kg)'

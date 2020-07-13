@@ -22,7 +22,8 @@ async def create_http_session(loop):
 async def create_db_connection(db_name):
     """Create the connection to the database."""
 
-    return await aiosqlite.connect(db_name)
+    return await aiosqlite.connect(
+        db_name, detect_types=1)  # 1: parse declared types
 
 
 class MyBot(Bot):
@@ -71,9 +72,9 @@ class MyBot(Bot):
             ))
 
         # make sure to populate self.owner_id at startup
-        await self.owner()
+        await self.init_owner()
 
-    async def owner(self):
+    async def init_owner(self):
         user = self.get_user(self.owner_id)
         if user:
             return user
@@ -81,6 +82,7 @@ class MyBot(Bot):
         else:
             app = await self.application_info()
             self.owner_id = app.owner.id
+            self.owner = app.owner
             return app.owner
 
 
@@ -111,6 +113,7 @@ if __name__ == '__main__':
 
     # This specifies what extensions to load when the bot starts up
     startup_extensions = [
+        'cogs.ACNH',
         'cogs.Admin',
         'cogs.Announcements',
         'cogs.Dev',
@@ -120,7 +123,6 @@ if __name__ == '__main__':
         'cogs.Help',
         'cogs.HVC',
         'cogs.Info',
-        'cogs.Levels',
         'cogs.Minigames',
         'cogs.Moderation',
         'cogs.Poll',
